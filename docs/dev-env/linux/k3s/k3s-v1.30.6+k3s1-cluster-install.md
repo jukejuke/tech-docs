@@ -82,6 +82,8 @@ firewall-cmd --permanent --add-port=6443/tcp
 firewall-cmd --permanent --add-port=8472/udp
 firewall-cmd --permanent --add-port=10250/tcp
 firewall-cmd --reload
+# 查看开放端口
+firewall-cmd --list-ports
 
 # Ubuntu/Debian
 ufw allow 2379/tcp
@@ -90,6 +92,8 @@ ufw allow 6443/tcp
 ufw allow 8472/udp
 ufw allow 10250/tcp
 ufw reload
+# 查看开放端口
+ufw status
 ```
 
 **或者暂时关闭防火墙**：
