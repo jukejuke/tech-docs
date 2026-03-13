@@ -19,9 +19,19 @@
 
 - 所有节点之间需要网络互通
 - 所有主节点需要开放以下端口：
-  - TCP 6443 (Kubernetes API)
-  - UDP 8472 (Flannel VXLAN)
-  - TCP 2379-2380 (etcd)
+
+| 端口 | 协议 | 用途 |
+| --- | --- | --- |
+| 2379/tcp | TCP | etcd 客户端通信 |
+| 2380/tcp | TCP | etcd 集群间通信 |
+| 6443/tcp | TCP | Kubernetes API |
+| 8472/udp | UDP | Flannel VXLAN |
+| 10250/tcp | TCP | Kubelet |
+
+**开放端口说明**：
+- 这些端口是 K3s 集群正常运行所必需的
+- 确保在所有主节点之间这些端口可互相访问
+- 如果启用了防火墙，需要在防火墙规则中开放这些端口
 
 ## 安装步骤
 
@@ -61,6 +71,28 @@ sudo nano /etc/hosts
 #### 1.3 关闭防火墙（可选）
 
 如果服务器启用了防火墙，需要开放相关端口或暂时关闭防火墙：
+
+**开放端口脚本**：
+
+```bash
+# CentOS/RHEL
+firewall-cmd --permanent --add-port=2379/tcp
+firewall-cmd --permanent --add-port=2380/tcp
+firewall-cmd --permanent --add-port=6443/tcp
+firewall-cmd --permanent --add-port=8472/udp
+firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --reload
+
+# Ubuntu/Debian
+ufw allow 2379/tcp
+ufw allow 2380/tcp
+ufw allow 6443/tcp
+ufw allow 8472/udp
+ufw allow 10250/tcp
+ufw reload
+```
+
+**或者暂时关闭防火墙**：
 
 ```bash
 # Ubuntu/Debian
