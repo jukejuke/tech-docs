@@ -66,6 +66,32 @@ spec:
   replicas: 3  # 修改为所需的副本数
 ```
 
+### 扩容与缩容 (Scaling)
+
+使用 `kubectl scale` 命令可以动态调整副本数，无需停机：
+
+```bash
+# 扩容到 3 个副本
+kubectl scale deployment nginx-deployment --replicas=3
+
+# 缩容到 1 个副本
+kubectl scale deployment nginx-deployment --replicas=1
+```
+
+### 验证扩容过程
+
+扩容过程中，Kubernetes 会使用滚动更新策略，确保服务不中断：
+
+```bash
+# 查看 Deployment 状态，观察滚动更新进度
+kubectl rollout status deployment nginx-deployment
+
+# 查看 Pod 状态，确认新 Pod 启动和旧 Pod 终止情况
+kubectl get pods -w
+```
+
+这样，即使在扩容或缩容过程中，服务也能保持可用，实现不停服部署。
+
 ### 修改镜像版本
 
 编辑 `nginx-deployment.yaml` 文件，修改 `image` 字段：
