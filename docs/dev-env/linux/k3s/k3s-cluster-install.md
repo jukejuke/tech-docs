@@ -21,6 +21,38 @@
 - **网络**：所有节点之间网络互通
 - **防火墙**：开放必要端口（6443, 8443, 10250）
 
+### 防火墙配置
+
+#### Ubuntu/Debian 系统
+
+```bash
+# 开放端口
+sudo ufw allow 6443/tcp
+sudo ufw allow 8443/tcp
+sudo ufw allow 10250/tcp
+
+# 查看防火墙状态
+sudo ufw status
+
+# 如果防火墙未启用，启用防火墙
+sudo ufw enable
+```
+
+#### CentOS/RHEL 系统
+
+```bash
+# 开放端口
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --permanent --add-port=8443/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+
+# 重新加载防火墙规则
+sudo firewall-cmd --reload
+
+# 查看防火墙状态
+sudo firewall-cmd --list-all
+```
+
 ## 安装步骤
 
 ### 步骤 1：安装第一个主节点
