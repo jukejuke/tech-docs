@@ -121,11 +121,31 @@ K3s 配置文件位于：
 
 可以在此文件中添加自定义配置。
 
+### 配置镜像源
+
+K3s 使用 `registries.yaml` 文件配置镜像仓库镜像源，位于：
+
+```bash
+/etc/rancher/k3s/registries.yaml
+```
+
+如果文件不存在，可创建该文件并添加以下内容以使用国内镜像源：
+
+```yaml
+mirrors:
+  docker.io:
+    endpoint:
+      - "https://docker.m.daocloud.io"
+```
+
+这样配置后，K3s 拉取 docker.io 镜像时会使用国内的 daocloud 镜像源，提高拉取速度。
+
 ## 常见问题
 
 ### 端口冲突
 
 确保以下端口未被占用：
+
 - 6443：Kubernetes API 服务器
 - 8443：K3s 服务器
 - 10250：Kubelet
@@ -174,3 +194,4 @@ curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIR
 - [K3s 官方文档](https://docs.k3s.io/)
 - [Rancher 镜像站](https://rancher-mirror.rancher.cn/)
 - [K3s GitHub 仓库](https://github.com/k3s-io/k3s)
+
