@@ -4,17 +4,19 @@
 
 ### 服务器配置要求
 
-| 服务器角色 | 数量 | CPU | 内存 | 存储 | 网络 |
-|---------|------|-----|------|------|------|
-| 主节点 (Server) | 3 | 2核+ | 2GB+ | 20GB+ | 局域网互通 |
+| 服务器角色        | 数量 | CPU | 内存   | 存储    | 网络    |
+| ------------ | -- | --- | ---- | ----- | ----- |
+| 主节点 (Server) | 3  | 2核+ | 2GB+ | 20GB+ | 局域网互通 |
 
 ### 操作系统要求
+
 - Ubuntu 20.04 LTS 或更高版本
 - Debian 10 或更高版本
 - CentOS 7 或更高版本
 - RHEL 7 或更高版本
 
 ### 网络要求
+
 - 所有节点之间需要网络互通
 - 所有主节点需要开放以下端口：
   - TCP 6443 (Kubernetes API)
@@ -74,7 +76,7 @@ sudo systemctl disable firewalld
 在第一个主节点上执行以下命令安装 K3s v1.30.6+k3s1 并初始化集群：
 
 ```bash
-curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.30.6+k3s1 sh -s - server --cluster-init
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_VERSION=v1.30.6+k3s1 sh -s - server --cluster-init
 ```
 
 安装完成后，验证主节点状态：
@@ -99,10 +101,10 @@ sudo cat /var/lib/rancher/k3s/server/node-token
 
 ```bash
 # 主节点2
-curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.30.6+k3s1 K3S_URL=https://k3s-server1:6443 K3S_TOKEN=<TOKEN> sh -s - server
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_VERSION=v1.30.6+k3s1 K3S_URL=https://k3s-server1:6443 K3S_TOKEN=<TOKEN> sh -s - server
 
 # 主节点3
-curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.30.6+k3s1 K3S_URL=https://k3s-server1:6443 K3S_TOKEN=<TOKEN> sh -s - server
+curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_VERSION=v1.30.6+k3s1 K3S_URL=https://k3s-server1:6443 K3S_TOKEN=<TOKEN> sh -s - server
 ```
 
 **注意**：将 `<TOKEN>` 替换为实际的节点令牌。
@@ -207,10 +209,13 @@ sudo kubectl get nodes
 
 ### 1. 节点无法加入集群
 
-- 检查网络连接：确保所有节点之间网络互通
+- 检查网络连接：确保所有节点之间网络互通，特别是 etcd 所需的 2379-2380 端口
 - 检查令牌是否正确：重新获取并使用正确的令牌
-- 检查防火墙设置：确保相关端口已开放
+- 检查防火墙设置：确保相关端口已开放（TCP 6443、UDP 8472、TCP 2379-2380）
 - 检查 etcd 状态：确保 etcd 集群正常运行
+- 检查主机名解析：确保所有节点的主机名都能正确解析
+- 检查时间同步：确保所有节点的系统时间同步
+- 查看详细日志：`sudo journalctl -u k3s` 查看完整的错误信息
 
 ### 2. 节点状态为 NotReady
 
@@ -224,6 +229,36 @@ sudo kubectl get nodes
 - 查看组件日志：`sudo kubectl logs -n kube-system <pod-name>`
 - 重启 k3s 服务：`sudo systemctl restart k3s`
 - 检查 etcd 集群健康状态：`sudo kubectl exec -n kube-system etcd-k3s-server1 -- etcdctl endpoint health --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/server.crt --key /etc/kubernetes/pki/etcd/server.key`
+
+### 4. etcd 集群故障排查
+
+如果遇到 etcd 集群相关错误（如 "runtime core not ready" 或 "apiserver not ready"）：
+
+1. **检查 etcd 端口是否开放**：确保所有节点的 2379-2380 端口可互相访问
+   ```bash
+   # 在每个节点上执行
+   sudo netstat -tuln | grep 2379
+   sudo netstat -tuln | grep 2380
+   ```
+
+2. **检查 etcd 集群状态**：在第一个主节点上执行
+   ```bash
+   sudo kubectl exec -n kube-system etcd-k3s-server1 -- etcdctl member list --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/server.crt --key /etc/kubernetes/pki/etcd/server.key
+   ```
+
+3. **重新加入节点**：如果节点加入失败，可以尝试以下步骤
+   - 停止 k3s 服务：`sudo systemctl stop k3s`
+   - 清理 etcd 数据：`sudo rm -rf /var/lib/rancher/k3s/server/db/etcd`
+   - 重新执行安装命令
+
+4. **检查系统时间同步**：etcd 集群要求节点间时间同步
+   ```bash
+   # 安装并配置时间同步
+   sudo apt install ntp -y  # Ubuntu/Debian
+   sudo yum install ntp -y  # CentOS/RHEL
+   sudo systemctl enable ntpd
+   sudo systemctl start ntpd
+   ```
 
 ## 卸载 K3s
 
@@ -241,12 +276,11 @@ sudo /usr/local/bin/k3s-uninstall.sh
 
 1. 升级第一个主节点：
    ```bash
-   curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.30.6+k3s1 sh -
+   curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_VERSION=v1.30.6+k3s1 sh -
    ```
-
 2. 升级其他主节点：
    ```bash
-   curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.30.6+k3s1 K3S_URL=https://k3s-server1:6443 K3S_TOKEN=<TOKEN> sh -s - server
+   curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_VERSION=v1.30.6+k3s1 K3S_URL=https://k3s-server1:6443 K3S_TOKEN=<TOKEN> sh -s - server
    ```
 
 ## 相关资源
@@ -269,3 +303,4 @@ sudo kubectl apply -f examples/nginx-service.yaml
 sudo kubectl get pods
 sudo kubectl get services
 ```
+
