@@ -1,0 +1,14 @@
+apiVersion: v1  # API 版本
+kind: Service  # 资源类型
+metadata:  # 元数据
+  name: example-app  # 服务名称
+  namespace: default  # 命名空间
+spec:  # 规格
+  selector:  # 选择器
+    app: example-app  # 匹配标签
+  ports:  # 端口配置
+  - name: http  # 端口名称
+    port: 80  # 服务端口
+    targetPort: 80  # 目标端口
+    protocol: TCP  # 协议
+  type: ClusterIP  # 服务类型

@@ -1,0 +1,46 @@
+apiVersion: apps/v1  # API 版本
+kind: Deployment  # 资源类型
+metadata:  # 元数据
+  name: example-app  # 部署名称
+  namespace: default  # 命名空间
+  labels:  # 标签
+    app: example-app  # 应用标签
+spec:  # 规格
+  replicas: 3  # 副本数
+  selector:  # 选择器
+    matchLabels:  # 匹配标签
+      app: example-app  # 应用标签
+  strategy:  # 更新策略
+    type: RollingUpdate  # 滚动更新
+    rollingUpdate:  # 滚动更新配置
+      maxSurge: 1  # 最大激增数
+      maxUnavailable: 0  # 最大不可用数
+  template:  # Pod 模板
+    metadata:  # 元数据
+      labels:  # 标签
+        app: example-app  # 应用标签
+    spec:  # 规格
+      containers:  # 容器
+      - name: example-app  # 容器名称
+        image: nginx:latest  # 镜像
+        ports:  # 端口
+        - containerPort: 80  # 容器端口
+        resources:  # 资源配置
+          requests:  # 资源请求
+            cpu: "100m"  # CPU 请求
+            memory: "128Mi"  # 内存请求
+          limits:  # 资源限制
+            cpu: "200m"  # CPU 限制
+            memory: "256Mi"  # 内存限制
+        livenessProbe:  # 存活探针
+          httpGet:  # HTTP 检查
+            path: /  # 路径
+            port: 80  # 端口
+          initialDelaySeconds: 30  # 初始延迟
+          periodSeconds: 10  # 检查周期
+        readinessProbe:  # 就绪探针
+          httpGet:  # HTTP 检查
+            path: /  # 路径
+            port: 80  # 端口
+          initialDelaySeconds: 5  # 初始延迟
+          periodSeconds: 10  # 检查周期
