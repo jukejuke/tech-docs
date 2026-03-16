@@ -495,3 +495,102 @@ sudo kubectl get services test-lb
 - MetalLB 会在网络中广播 ARP 包，将分配的 IP 地址映射到节点的 MAC 地址
 - 如果使用的是云环境，可能需要额外的网络配置
 
+### 6. 为 LoadBalancer 服务部署固定 IP
+
+在使用 MetalLB 时，可以为 LoadBalancer 类型的服务分配固定 IP 地址，确保服务每次部署都使用相同的 IP。
+
+#### 方法一：通过服务注解指定固定 IP
+
+在创建服务时，通过 ` metallb.universe.tf/loadBalancerIP` 注解指定固定 IP：
+
+```bash
+sudo kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lb
+  annotations:
+    metallb.universe.tf/loadBalancerIP: 192.168.1.201  # 指定固定 IP
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+EOF
+```
+
+#### 方法二：通过 IPAddressPool 配置保留 IP
+
+1. 修改 MetalLB 配置文件，在 IPAddressPool 中添加 `reserved` 字段：
+
+```bash
+sudo nano metallb-config.yaml
+```
+
+2. 更新配置内容：
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.1.200-192.168.1.250
+  reserved:
+  - 192.168.1.201-192.168.1.205  # 保留的固定 IP 范围
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - default
+```
+
+3. 应用配置：
+
+```bash
+sudo kubectl apply -f metallb-config.yaml
+```
+
+4. 创建服务时指定固定 IP：
+
+```bash
+sudo kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lb
+
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+  loadBalancerIP: 192.168.1.201  # 指定固定 IP
+EOF
+```
+
+#### 验证固定 IP 分配
+
+```bash
+# 查看服务状态
+sudo kubectl get services nginx-lb
+
+# 验证 IP 地址是否与指定的固定 IP 一致
+```
+
+#### 注意事项
+
+- 确保指定的固定 IP 位于 MetalLB 配置的 IP 地址池中
+- 如果使用方法二，确保固定 IP 不在 `reserved` 范围内被其他服务占用
+- 固定 IP 分配后，即使服务被删除并重新创建，只要指定相同的 IP，MetalLB 会优先分配该 IP
+
