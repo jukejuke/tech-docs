@@ -326,6 +326,25 @@ sudo /usr/local/bin/k3s-uninstall.sh
 - [Kubernetes 官方文档](https://kubernetes.io/docs/)
 - [Flannel 网络插件](https://github.com/flannel-io/flannel)
 
+## 配置镜像源
+
+K3s 使用 `registries.yaml` 文件配置镜像仓库镜像源，位于：
+
+```bash
+/etc/rancher/k3s/registries.yaml
+```
+
+如果文件不存在，可创建该文件并添加以下内容以使用国内镜像源：
+
+```yaml
+mirrors:
+  docker.io:
+    endpoint:
+      - "https://docker.m.daocloud.io"
+```
+
+这样配置后，K3s 拉取 docker.io 镜像时会使用国内的 daocloud 镜像源，提高拉取速度。
+
 ## 示例应用部署
 
 参考 `examples` 目录下的示例文件，部署一个 Nginx 应用：
