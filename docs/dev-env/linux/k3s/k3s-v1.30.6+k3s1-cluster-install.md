@@ -359,3 +359,94 @@ sudo kubectl get pods
 sudo kubectl get services
 ```
 
+## MetalLB 配置（替代 klipper-lb）
+
+K3s 默认使用 klipper-lb 作为 LoadBalancer 实现，但它会使用节点的 IP 地址。如果需要使用独立的 IP 地址作为 LoadBalancer 地址，可以部署 MetalLB。
+
+### 1. 安装 MetalLB
+
+在任意主节点上执行以下命令安装 MetalLB：
+
+```bash
+# 安装 MetalLB
+sudo kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+```
+
+### 2. 配置 MetalLB IP 地址池
+
+创建 MetalLB 配置文件，定义 IP 地址池：
+
+```bash
+sudo nano metallb-config.yaml
+```
+
+添加以下内容（根据实际网络环境修改 IP 地址范围）：
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.1.200-192.168.1.250
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - default
+```
+
+应用配置：
+
+```bash
+sudo kubectl apply -f metallb-config.yaml
+```
+
+### 3. 验证 MetalLB 部署
+
+```bash
+# 查看 MetalLB 组件状态
+sudo kubectl get pods -n metallb-system
+
+# 查看 IP 地址池状态
+sudo kubectl get ipaddresspools.metallb.io -n metallb-system
+```
+
+### 4. 测试 MetalLB
+
+部署一个使用 LoadBalancer 类型的服务：
+
+```bash
+sudo kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-lb
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+EOF
+```
+
+查看服务状态，应该会分配一个来自 MetalLB IP 池的 IP 地址：
+
+```bash
+sudo kubectl get services test-lb
+```
+
+### 5. 注意事项
+
+- 确保配置的 IP 地址范围在您的网络环境中是可用的，且未被其他设备占用
+- MetalLB 会在网络中广播 ARP 包，将分配的 IP 地址映射到节点的 MAC 地址
+- 如果使用的是云环境，可能需要额外的网络配置
+
