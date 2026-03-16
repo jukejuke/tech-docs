@@ -453,6 +453,44 @@ spec:
 sudo kubectl apply -f metallb-config.yaml
 ```
 
+### 重新部署说明
+
+如果已经部署了 MetalLB 并且需要更新配置，按照以下步骤操作：
+
+1. **更新配置文件**：修改 `metallb-config.yaml` 文件中的配置内容（如 IP 地址范围、保留 IP 等）
+
+2. **重新应用配置**：
+
+```bash
+sudo kubectl apply -f metallb-config.yaml
+```
+
+3. **验证配置更新**：
+
+```bash
+# 查看 IP 地址池状态
+sudo kubectl get ipaddresspools.metallb.io -n metallb-system -o yaml
+
+# 查看 L2Advertisement 状态
+sudo kubectl get l2advertisements.metallb.io -n metallb-system -o yaml
+```
+
+4. **重启 MetalLB 组件**（如果配置未生效）：
+
+```bash
+# 重启 MetalLB 控制器
+sudo kubectl rollout restart deployment metallb-controller -n metallb-system
+
+# 重启 MetalLB 扬声器
+sudo kubectl rollout restart daemonset metallb-speaker -n metallb-system
+```
+
+5. **验证服务状态**：确保所有 MetalLB 组件正常运行
+
+```bash
+sudo kubectl get pods -n metallb-system
+```
+
 ### 3. 验证 MetalLB 部署
 
 ```bash
