@@ -50,6 +50,9 @@ kubectl get pods -n <namespace>
 # 查看 Pod 详细信息
 kubectl describe pod <pod-name> -n <namespace>
 
+# 查看 Pod 启动节点信息
+kubectl get pods -n <namespace> -o wide
+
 # 查看 Pod 日志
 kubectl logs <pod-name> -n <namespace>
 
