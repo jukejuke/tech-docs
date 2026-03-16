@@ -363,6 +363,51 @@ sudo kubectl get services
 
 K3s 默认使用 klipper-lb 作为 LoadBalancer 实现，但它会使用节点的 IP 地址。如果需要使用独立的 IP 地址作为 LoadBalancer 地址，可以部署 MetalLB。
 
+### 处理已安装的 klipper-lb
+
+如果在安装 K3s 时没有排除 klipper-lb，后续仍然可以部署 MetalLB。两者可以共存，但 MetalLB 会优先处理 LoadBalancer 类型的服务。
+
+#### 验证 klipper-lb 状态
+
+```bash
+# 查看 klipper-lb 组件状态
+sudo kubectl get pods -n kube-system | grep klipper
+```
+
+#### 部署 MetalLB
+
+即使 klipper-lb 存在，仍然可以按照以下步骤部署 MetalLB。当创建 LoadBalancer 类型的服务时，MetalLB 会接管并分配 IP 地址，而不是使用 klipper-lb。
+
+#### 禁用 klipper-lb（可选）
+
+如果希望完全禁用 klipper-lb，可以通过修改 K3s 配置来实现：
+
+1. 编辑 K3s 配置文件：
+
+```bash
+sudo nano /etc/rancher/k3s/config.yaml
+```
+
+2. 添加以下内容：
+
+```yaml
+disable: klipper-lb
+```
+
+3. 重启 K3s 服务：
+
+```bash
+sudo systemctl restart k3s
+```
+
+4. 验证 klipper-lb 是否已被禁用：
+
+```bash
+sudo kubectl get pods -n kube-system | grep klipper
+```
+
+如果没有输出，说明 klipper-lb 已被成功禁用。
+
 ### 1. 安装 MetalLB
 
 在任意主节点上执行以下命令安装 MetalLB：
