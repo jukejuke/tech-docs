@@ -26,9 +26,10 @@ docker run -p 8080:8080 spring-boot-app
 
 ### 第一阶段：构建阶段
 
-- 使用 `eclipse-temurin:21-jdk-alpine` 作为基础镜像，包含 JDK 21
+- 使用 `maven:3.9.6-eclipse-temurin-21` 作为基础镜像，包含 Maven 3.9.6 和 JDK 21
+- 设置时区为 Asia/Shanghai
 - 设置工作目录为 `/app`
-- 复制 Maven 配置文件和包装器
+- 复制 Maven 配置文件
 - 下载依赖
 - 复制源代码
 - 构建应用
@@ -36,9 +37,13 @@ docker run -p 8080:8080 spring-boot-app
 ### 第二阶段：运行阶段
 
 - 使用 `eclipse-temurin:21-jre-alpine` 作为基础镜像，只包含 JRE 21
+- 设置时区为 Asia/Shanghai
+- 创建普通用户 `appuser` 及其组 `appgroup`
 - 设置工作目录为 `/app`
 - 从构建阶段复制构建好的 JAR 文件
+- 设置文件权限，确保普通用户可以访问
 - 暴露端口 8080
+- 切换到普通用户 `appuser`
 - 运行应用
 
 ## 项目结构要求

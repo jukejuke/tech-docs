@@ -1,6 +1,10 @@
 # 第一阶段：构建阶段
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 
+# 设置时区
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # 设置工作目录
 WORKDIR /app
 
@@ -19,14 +23,27 @@ RUN mvn package -DskipTests
 # 第二阶段：运行阶段
 FROM eclipse-temurin:21-jre-alpine AS run
 
+# 设置时区
+ENV TZ=Asia/Shanghai
+RUN apk add --no-cache tzdata && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# 创建普通用户
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 # 设置工作目录
 WORKDIR /app
 
 # 从构建阶段复制构建好的 JAR 文件
 COPY --from=build /app/target/*.jar app.jar
 
+# 设置文件权限
+RUN chown -R appuser:appgroup /app
+
 # 暴露端口
 EXPOSE 8080
+
+# 切换到普通用户
+USER appuser
 
 # 运行应用
 ENTRYPOINT ["java", "-jar", "app.jar"]
