@@ -578,8 +578,8 @@ metadata:
 spec:
   addresses:
   - 192.168.1.200-192.168.1.250
-  reserved:
-  - 192.168.1.201-192.168.1.205  # 保留的固定 IP 范围
+  excludedAddresses:
+  - 192.168.1.201-192.168.1.205  # 排除的 IP 范围（用于固定 IP）
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
@@ -629,6 +629,6 @@ sudo kubectl get services nginx-lb
 #### 注意事项
 
 - 确保指定的固定 IP 位于 MetalLB 配置的 IP 地址池中
-- 如果使用方法二，确保固定 IP 不在 `reserved` 范围内被其他服务占用
+- 如果使用方法二，确保固定 IP 不在 `excludedAddresses` 范围内被其他服务占用
 - 固定 IP 分配后，即使服务被删除并重新创建，只要指定相同的 IP，MetalLB 会优先分配该 IP
 
