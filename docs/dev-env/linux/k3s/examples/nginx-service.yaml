@@ -1,13 +1,17 @@
-apiVersion: v1
-kind: Service
+# Nginx 服务配置示例
+# 此文件定义了一个 ClusterIP 类型的服务，用于访问 Nginx 应用
+
+apiVersion: v1           # Kubernetes API 版本
+kind: Service           # 资源类型为 Service
 metadata:
-  name: nginx-service
-  namespace: default
+  name: nginx-service   # 服务名称
+  namespace: default    # 命名空间
+
 spec:
-  selector:
-    app: nginx
+  selector:             # 选择器，用于匹配 Pod
+    app: nginx          # 匹配标签为 app=nginx 的 Pod
   ports:
-  - port: 80
-    targetPort: 80
-    protocol: TCP
-  type: ClusterIP
+  - port: 80            # 服务暴露的端口
+    targetPort: 80      # Pod 上的目标端口
+    protocol: TCP       # 协议类型
+  type: ClusterIP       # 服务类型为 ClusterIP，仅集群内部可访问
