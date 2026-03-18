@@ -78,9 +78,11 @@ sudo nano /etc/hosts
 # CentOS/RHEL
 firewall-cmd --permanent --add-port=2379/tcp
 firewall-cmd --permanent --add-port=2380/tcp
-firewall-cmd --permanent --add-port=6443/tcp
+firewall-cmd --permanent --add-port=6443/tcp #apiserver
 firewall-cmd --permanent --add-port=8472/udp
 firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --zone=trusted --add-source=10.42.0.0/16 #pods
+firewall-cmd --permanent --zone=trusted --add-source=10.43.0.0/16 #services
 firewall-cmd --reload
 # 查看开放端口
 firewall-cmd --list-ports
@@ -88,9 +90,11 @@ firewall-cmd --list-ports
 # Ubuntu/Debian
 ufw allow 2379/tcp
 ufw allow 2380/tcp
-ufw allow 6443/tcp
+ufw allow 6443/tcp #apiserver
 ufw allow 8472/udp
 ufw allow 10250/tcp
+ufw allow from 10.42.0.0/16 to any #pods
+ufw allow from 10.43.0.0/16 to any #services
 ufw reload
 # 查看开放端口
 ufw status
