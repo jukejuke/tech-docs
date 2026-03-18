@@ -154,6 +154,19 @@ mirrors:
 
 如果启用了防火墙，需要开放相关端口：
 
+#### K3s 节点入站规则
+
+| Protocol | Port | Source | Destination | Description |
+|---------|------|--------|-------------|-------------|
+| TCP | 2379-2380 | Servers | Servers | Required only for HA with embedded etcd（仅 HA 模式且使用嵌入式 etcd 时需要） |
+| TCP | 6443 | Agents | Servers | K3s supervisor and Kubernetes API Server（K3s 监督器和 Kubernetes API 服务器） |
+| UDP | 8472 | All nodes | All nodes | Required only for Flannel VXLAN（仅使用 Flannel VXLAN 网络时需要） |
+| TCP | 10250 | All nodes | All nodes | Kubelet metrics（Kubelet 指标） |
+| UDP | 51820 | All nodes | All nodes | Required only for Flannel Wireguard with IPv4（仅使用 Flannel Wireguard IPv4 网络时需要） |
+| UDP | 51821 | All nodes | All nodes | Required only for Flannel Wireguard with IPv6（仅使用 Flannel Wireguard IPv6 网络时需要） |
+| TCP | 5001 | All nodes | All nodes | Required only for embedded distributed registry (Spegel)（仅使用嵌入式分布式注册表 Spegel 时需要） |
+| TCP | 6443 | All nodes | All nodes | Required only for embedded distributed registry (Spegel)（仅使用嵌入式分布式注册表 Spegel 时需要） |
+
 ```bash
 # 对于 firewalld
 sudo firewall-cmd --permanent --add-port=6443/tcp
