@@ -27,6 +27,7 @@
 | 6443/tcp | TCP | Kubernetes API |
 | 8472/udp | UDP | Flannel VXLAN |
 | 10250/tcp | TCP | Kubelet |
+| 30000-32767/tcp | TCP | NodePort 服务端口范围 |
 
 **开放端口说明**：
 - 这些端口是 K3s 集群正常运行所必需的
@@ -81,6 +82,7 @@ firewall-cmd --permanent --add-port=2380/tcp
 firewall-cmd --permanent --add-port=6443/tcp #apiserver
 firewall-cmd --permanent --add-port=8472/udp
 firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=30000-32767/tcp #NodePort 服务端口范围
 firewall-cmd --permanent --zone=trusted --add-source=10.42.0.0/16 #pods
 firewall-cmd --permanent --zone=trusted --add-source=10.43.0.0/16 #services
 firewall-cmd --reload
@@ -93,6 +95,7 @@ ufw allow 2380/tcp
 ufw allow 6443/tcp #apiserver
 ufw allow 8472/udp
 ufw allow 10250/tcp
+ufw allow 30000:32767/tcp #NodePort 服务端口范围
 ufw allow from 10.42.0.0/16 to any #pods
 ufw allow from 10.43.0.0/16 to any #services
 ufw reload
