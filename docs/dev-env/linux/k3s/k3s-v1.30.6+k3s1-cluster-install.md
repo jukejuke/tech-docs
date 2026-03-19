@@ -326,12 +326,6 @@ sudo /usr/local/bin/k3s-uninstall.sh
    curl -sfL https://rancher-mirror.rancher.cn/k3s/k3s-install.sh | INSTALL_K3S_MIRROR=cn INSTALL_K3S_VERSION=v1.30.6+k3s1 K3S_URL=https://k3s-server1:6443 K3S_TOKEN=<TOKEN> sh -s - server
    ```
 
-## 相关资源
-
-- [K3s 官方文档](https://docs.k3s.io/)
-- [K3s 高可用配置](https://docs.k3s.io/installation/ha)
-- [Kubernetes 官方文档](https://kubernetes.io/docs/)
-- [Flannel 网络插件](https://github.com/flannel-io/flannel)
 
 ## 配置镜像源
 
@@ -639,3 +633,10 @@ sudo kubectl get services nginx-lb
 - 如果使用方法二，确保固定 IP 不在 `excludedAddresses` 范围内被其他服务占用
 - 固定 IP 分配后，即使服务被删除并重新创建，只要指定相同的 IP，MetalLB 会优先分配该 IP
 
+
+## 相关资源
+
+- [K3s 官方文档](https://docs.k3s.io/)
+- [K3s 高可用配置](https://docs.k3s.io/installation/ha)
+- [Kubernetes 官方文档](https://kubernetes.io/docs/)
+- [Flannel 网络插件](https://github.com/flannel-io/flannel)
