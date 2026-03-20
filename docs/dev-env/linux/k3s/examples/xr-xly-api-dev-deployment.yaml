@@ -1,0 +1,90 @@
+# XR-XLY-API-Dev 服务部署配置示例
+# 此文件定义了一个完整的 Kubernetes 部署配置，包含以下组件：
+# 1. LoadBalancer 类型的 Service - 用于外部访问
+# 2. Deployment - 用于管理 Pod 副本
+# 3. 健康检查探针 - 确保服务可用性
+
+# ====================================
+# Service 配置部分
+# ====================================
+apiVersion: v1           # Kubernetes API 版本
+kind: Service           # 资源类型为 Service
+metadata:
+  name: xr-xly-api-dev-service   # 服务名称
+  namespace: default             # 命名空间
+  labels:
+    app: xr-xly-api-dev           # 服务标签
+spec:
+  selector:             # 选择器，用于匹配 Pod
+    app: xr-xly-api-dev  # 匹配标签为 app=xr-xly-api-dev 的 Pod
+  ports:
+  - port: 58080         # 服务暴露的端口
+    targetPort: 58080   # Pod 上的目标端口
+    protocol: TCP       # 协议类型
+  type: LoadBalancer    # 服务类型为 LoadBalancer
+  loadBalancerIP: 192.168.0.33  # 静态 IP 地址（需确保在 MetalLB 地址池中）
+
+---
+
+# ====================================
+# Deployment 配置部分
+# ====================================
+apiVersion: apps/v1      # Kubernetes API 版本
+kind: Deployment         # 资源类型为 Deployment
+metadata:
+  name: xr-xly-api-dev-deployment  # Deployment 名称
+  namespace: default              # 命名空间
+  labels:
+    app: xr-xly-api-dev            # 标签
+spec:
+  replicas: 1  # 副本数，设置为 1
+  selector:
+    matchLabels:
+      app: xr-xly-api-dev  # 选择器，匹配 Pod 标签
+  template:
+    metadata:
+      labels:
+        app: xr-xly-api-dev  # Pod 标签
+    spec:
+      containers:
+      - name: xr-xly-api-dev  # 容器名称
+        image: 192.168.0.25/xr-xly-api-dev:20260317-170610  # 镜像地址
+        ports:
+        - containerPort: 58080  # 容器端口
+        resources:  # 资源限制配置
+          limits:  # 资源上限
+            cpu: "500m"      # CPU 上限 500 毫核
+            memory: "512Mi"   # 内存上限 512 MB
+          requests:  # 资源请求
+            cpu: "200m"      # CPU 请求 200 毫核
+            memory: "256Mi"   # 内存请求 256 MB
+        readinessProbe:  # 就绪探针
+          httpGet:        # 使用 HTTP GET 方法检查
+            path: /       # 检查路径
+            port: 58080   # 检查端口
+          initialDelaySeconds: 5  # 容器启动后等待 5 秒开始检查
+          periodSeconds: 10       # 每 10 秒检查一次
+        livenessProbe:   # 存活探针
+          httpGet:        # 使用 HTTP GET 方法检查
+            path: /       # 检查路径
+            port: 58080   # 检查端口
+          initialDelaySeconds: 15  # 容器启动后等待 15 秒开始检查
+          periodSeconds: 20       # 每 20 秒检查一次
+
+# ====================================
+# 部署说明
+# ====================================
+# 1. 前提条件：
+#    - 已安装并配置 MetalLB（用于提供 LoadBalancer 服务）
+#    - 192.168.0.33 已在 MetalLB 地址池中配置
+#    - 192.168.0.25 镜像仓库可访问
+#
+# 2. 部署命令：
+#    kubectl apply -f xr-xly-api-dev-deployment.yaml
+#
+# 3. 验证命令：
+#    kubectl get pods -l app=xr-xly-api-dev
+#    kubectl get svc xr-xly-api-dev-service
+#
+# 4. 访问地址：
+#    http://192.168.0.33:58080
